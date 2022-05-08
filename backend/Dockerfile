@@ -1,8 +1,9 @@
-FROM python:3.9-slim-buster
+FROM python:3.8-alpine
 
 WORKDIR /app
 
-RUN pip3 install flask flask_cors
+RUN apk add build-base postgresql-dev
+RUN pip3 install flask flask_cors psycopg2
 
 COPY . ./
 
