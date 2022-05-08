@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  api:
+    image: movies2watch-api
+    container_name: api
+    build:
+      context: backend
+    environment:
+      - PORT=${PORT}
+    ports:
+      - ${PORT}:${PORT}
+    expose:
+      - ${PORT}
