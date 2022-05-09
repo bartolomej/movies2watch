@@ -1,6 +1,10 @@
 import unittest
 import numpy as np
+
+from recommender import Recommender
+from db import DB
 from nmf import NMF
+from flask import request, jsonify, Flask
 
 
 class NmfTestCase(unittest.TestCase):
