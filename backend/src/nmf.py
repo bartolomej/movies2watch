@@ -12,6 +12,9 @@ class NMF:
         W is of shape (m, rank) - approximated row space
         H is of shape (n, rank) - approximated column space
         E is of shape (m, n)    - residual (error) matrix
+
+    The rank represents the (expected) number of features (or patterns) in data.
+    Lower rank means higher "compression" that a model produces.
     """
 
     def __init__(self, rank=10, max_iter=100, eta=0.01):
@@ -33,9 +36,14 @@ class NMF:
         :param X:
             Non-negative data matrix of shape (m, n)
             Unknown values are assumed to take the value of zero (0).
+        :param verbose:
+            Print errors per iterations.
         """
         m, n = X.shape
 
+        """
+        Randomly initialise W and H matrix for the linear system X = W * H. 
+        """
         W = np.random.rand(m, self.rank)
         H = np.random.rand(n, self.rank)
 
@@ -57,14 +65,12 @@ class NMF:
             np.random.shuffle(h_vars)
 
             for i, k in w_vars:
-                # TODO: your code here
-                # Calculate gradient and update W[i, k]
-                pass
+                wgrad = sum([(X[i, j] - W[i, :].dot(H[j, :])) * W[i, k] for j in nzrows[i]])
+                W[i, k] = max(0, W[i, k] + self.eta * wgrad)
 
             for j, k in h_vars:
-                # TODO: your code here
-                # Calculate gradient and update H[j, k]
-                pass
+                hgrad = sum([(X[i, j] - W[i, :].dot(H[j, :])) * H[j, k] for i in nzcols[j]])
+                H[j, k] = max(0, H[j, k] + self.eta * hgrad)
 
             self.error[t] = np.linalg.norm((X - W.dot(H.T))[X > 0]) ** 2
             if verbose:
