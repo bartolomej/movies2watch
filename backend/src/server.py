@@ -6,6 +6,8 @@ from repository import find_all, mutation, query
 from recommender import Recommender
 from cerberus import Validator
 from datetime import datetime
+from utils import norm_text
+import re
 import os
 
 app = Flask(__name__)
@@ -19,15 +21,41 @@ with app.app_context():
     # r.train()
 
 
+def get_arg(key):
+    if key not in request.args:
+        raise Exception(f"Arg {key} not given")
+    return request.args.get(key)
+
+
+def serialize_movie(movie):
+    return {
+        'id': movie[0],
+        'title': movie[1],
+        'genres': movie[2].split('|')
+    }
+
+
+def serialize_user(user):
+    return {
+        'id': user[0],
+        'username': user[1]
+    }
+
+
+def serialize_rating(rating):
+    return {
+        'id': rating[0],
+        'rating': rating[1],
+        'timestamp': rating[2],
+        'user_id': rating[3],
+        'movie_id': rating[4]
+    }
+
+
 @app.route('/predict')
 def recommender():
-    def get_arg(key):
-        if key not in request.args:
-            raise Exception(f"Arg {key} not given")
-        return int(request.args.get(key))
-
     return {
-        'rating': r.predict_rating(get_arg("user_id"), get_arg("movie_id"))
+        'rating': r.predict_rating(int(get_arg("user_id")), int(get_arg("movie_id")))
     }
 
 
@@ -62,39 +90,50 @@ def create_user():
     next_id = get_next_id("user")
     mutation(
         f"INSERT INTO \"user\" (id, username, password) VALUES ({next_id}, '{body['username']}', '{body['password']}')")
-    return "Success"
+    return {
+        'id': next_id,
+        'message': "User created"
+    }
 
 
 @app.route('/user/login', methods=['POST'])
 def login_user():
     body = request.json
     validate_user(body)
-    existing = query(
+    rows = query(
         f"select * from \"user\" where username = '{body['username']}' and password = '{body['password']}'")
-    if len(existing) == 0:
+    if len(rows) == 0:
         raise Exception("User not found")
-    return jsonify(existing[0])
+    return jsonify(serialize_user(rows[0]))
 
 
 @app.route('/user/<id>')
 def get_user(id):
-    row, = query(f"select * from \"user\" where id = {id}")
-    return jsonify(row)
+    rows = query(f"select * from \"user\" where id = {id}")
+    if len(rows) != 1:
+        raise Exception("User not found")
+    return jsonify(serialize_user(rows[0]))
 
 
 @app.route('/movie')
 def movies():
-    return jsonify(find_all("movie"))
+    res = None
+    if 'q' in request.args:
+        q = norm_text(" & ".join(re.split('[ ]+', request.args['q'])))
+        res = query(f"select * from movie where to_tsvector(title) @@ to_tsquery('{q}');")
+    else:
+        res = find_all("movie")
+    return jsonify(list(map(lambda x: serialize_movie(x), res)))
 
 
 @app.route('/user')
 def users():
-    return jsonify(find_all("user"))
+    return jsonify(list(map(lambda x: serialize_user(x), find_all("user"))))
 
 
 @app.route('/rating')
 def ratings():
-    return jsonify(find_all("rating"))
+    return jsonify(list(map(lambda x: serialize_rating(x), find_all("rating"))))
 
 
 @app.route('/rating', methods=['POST'])
@@ -106,7 +145,10 @@ def add_rating():
         insert into rating (id, rating, timestamp, userId, movieId)
         values ({next_id}, {body['rating']}, '{datetime.now().isoformat()}', {body['user_id']}, {body['movie_id']})
     """)
-    return "Success"
+    return {
+        'id': next_id,
+        'message': "Rating added"
+    }
 
 
 def get_next_id(table):

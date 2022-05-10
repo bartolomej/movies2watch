@@ -1,6 +1,7 @@
 import {useState} from "react";
 import {useRouter} from "next/router";
 import {useAuth} from "../common/auth-context";
+import {onChange} from "../common/utils";
 
 export default function Login() {
     const router = useRouter();
@@ -28,10 +29,6 @@ export default function Login() {
             .catch(e => {
                 alert(e.toString())
             })
-    }
-
-    function onChange(callback) {
-        return (e) => callback(e.target.value);
     }
 
     return (

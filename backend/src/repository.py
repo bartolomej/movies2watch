@@ -1,7 +1,7 @@
 from db import DB
 
 
-def find_all(table, fields=None, limit=None):
+def find_all(table, fields=None, limit=100):
     if fields is None:
         fields = ['*']
     limit = f"LIMIT {limit}" if limit else ""

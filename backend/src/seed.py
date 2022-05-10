@@ -3,6 +3,7 @@ from psycopg2.errors import UniqueViolation, ForeignKeyViolation
 import csv
 from datetime import datetime
 from flask import current_app
+from utils import norm_text
 
 
 def seed_all():
@@ -79,7 +80,3 @@ def read_seed(file, row_cb=lambda x: x):
         reader = csv.reader(f.read().decode("utf8").split("\n"))
         next(reader)  # skip header row
         return reader
-
-
-def norm_text(value):
-    return value.replace("'", "''")
