@@ -2,20 +2,26 @@ import {useEffect, useState} from "react";
 import {useAuth} from "./auth-context";
 
 export function useMovies(query = null) {
+    const {user} = useAuth();
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        if (!user) return;
+        refetch();
+    }, [query, user])
+
+    function refetch() {
         const args = query ? `?q=${query}` : '';
         setLoading(true);
-        fetch("http://localhost:3001/movie" + args)
+        return fetch(`http://localhost:3001/user/${user.id}/movie` + args)
             .then(res => res.json())
             .then(data => setData(data))
             .catch(error => alert(error.toString()))
             .finally(() => setLoading(false))
-    }, [query])
+    }
 
-    return {data, loading};
+    return {data, loading, refetch};
 }
 
 export function useRating() {
@@ -24,7 +30,7 @@ export function useRating() {
 
     function rateMovie(movieId, rating) {
         setSubmitting(true);
-        fetch("http://localhost:3001/rating",  {
+        return fetch("http://localhost:3001/rating",  {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

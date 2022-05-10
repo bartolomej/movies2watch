@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS movie
 
 CREATE TABLE IF NOT EXISTS rating
 (
-    id        SERIAL PRIMARY KEY,
     rating    REAL NOT NULL,
     timestamp TIMESTAMP   NOT NULL,
     movieId   INT,
@@ -22,5 +21,6 @@ CREATE TABLE IF NOT EXISTS rating
     CONSTRAINT fkMovie
         FOREIGN KEY (movieId) REFERENCES movie (id),
     CONSTRAINT fkUser
-        FOREIGN KEY (userId) REFERENCES "user" (id)
+        FOREIGN KEY (userId) REFERENCES "user" (id),
+    PRIMARY KEY (movieId, userId)
 );

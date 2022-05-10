@@ -31,7 +31,8 @@ def serialize_movie(movie):
     return {
         'id': movie[0],
         'title': movie[1],
-        'genres': movie[2].split('|')
+        'genres': movie[2].split('|'),
+        'rating': movie[3] if len(movie) > 3 else None
     }
 
 
@@ -129,6 +130,22 @@ def movies():
 @app.route('/user')
 def users():
     return jsonify(list(map(lambda x: serialize_user(x), find_all("user"))))
+
+
+@app.route('/user/<id>/movie')
+def user_movies(id):
+    where_expr = ""
+    if 'q' in request.args:
+        q = norm_text(" & ".join(re.split('[ ]+', request.args['q'])))
+        where_expr = f"where to_tsvector(title) @@ to_tsquery('{q}')"
+
+    res = query(f"""
+    select m.id, m.title, m.genres, r.rating from movie as m 
+    left join rating as r on m.id = r.movieid and r.userid = {id} 
+    {where_expr}
+    order by m.id limit 100;
+    """)
+    return jsonify(list(map(lambda x: serialize_movie(x), res)))
 
 
 @app.route('/rating')

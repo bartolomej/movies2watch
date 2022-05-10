@@ -12,7 +12,7 @@ export default function Home() {
     const {user} = useAuth();
     const [currMovieId, setCurrMovieId] = useState(null);
     const [query, setQuery] = useState('');
-    const {data, loading} = useMovies(query);
+    const {data, loading, refetch} = useMovies(query);
     const {submitting, rateMovie} = useRating()
 
     useEffect(() => {
@@ -21,8 +21,9 @@ export default function Home() {
         }
     }, [user])
 
-    function onSubmitRating(rating) {
-        rateMovie(currMovieId, rating);
+    async function onSubmitRating(rating) {
+        await rateMovie(currMovieId, rating);
+        await refetch();
         setCurrMovieId(null);
     }
 
@@ -46,6 +47,7 @@ export default function Home() {
                         <Table.Column>ID</Table.Column>
                         <Table.Column>TITLE</Table.Column>
                         <Table.Column>GENRES</Table.Column>
+                        <Table.Column>RATING</Table.Column>
                         <Table.Column></Table.Column>
                     </Table.Header>
                     <Table.Body>
@@ -54,12 +56,15 @@ export default function Home() {
                                 <Table.Cell>{movie.id}</Table.Cell>
                                 <Table.Cell>{movie.title}</Table.Cell>
                                 <Table.Cell>{movie.genres.join(", ")}</Table.Cell>
+                                <Table.Cell>{movie.rating}</Table.Cell>
                                 <Table.Cell>
                                     <Row justify="center" align="center">
                                         <Col css={{d: "flex"}}>
-                                            <IconButton onClick={() => setCurrMovieId(movie.id)}>
-                                                Rate
-                                            </IconButton>
+                                            {!movie.rating && (
+                                                <IconButton onClick={() => setCurrMovieId(movie.id)}>
+                                                    Rate
+                                                </IconButton>
+                                            )}
                                         </Col>
                                     </Row>
                                 </Table.Cell>
