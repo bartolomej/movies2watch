@@ -1,7 +1,7 @@
 import {useRouter} from "next/router";
 import {useAuth} from "../common/auth-context";
 import {useEffect, useState} from "react";
-import {useMovies, useRating} from "../common/use-data";
+import {useMovies, useRating, useRecommendations} from "../common/use-data";
 import {onChange} from "../common/utils";
 import {styled} from "@nextui-org/react";
 import {Input, Spacer, Grid, Table, Modal, Row, Col, Tooltip, Button, Text} from "@nextui-org/react";
@@ -14,6 +14,7 @@ export default function Home() {
     const [query, setQuery] = useState('');
     const {data, loading, refetch} = useMovies(query);
     const {submitting, rateMovie} = useRating()
+    const {data: recommended} = useRecommendations();
 
     useEffect(() => {
         if (!user) {
@@ -38,9 +39,32 @@ export default function Home() {
                 submitting={submitting}
             />
             <Grid>
+                <Text h2>Recommended</Text>
+            </Grid>
+            <Grid>
+                <Table>
+                    <Table.Header>
+                        <Table.Column>ID</Table.Column>
+                        <Table.Column>TITLE</Table.Column>
+                        <Table.Column>GENRES</Table.Column>
+                        <Table.Column>PREDICTED RATING</Table.Column>
+                    </Table.Header>
+                    <Table.Body>
+                        {recommended.map(movie => (
+                            <Table.Row key={movie.id}>
+                                <Table.Cell>{movie.id}</Table.Cell>
+                                <Table.Cell>{movie.title}</Table.Cell>
+                                <Table.Cell>{movie.genres.join(", ")}</Table.Cell>
+                                <Table.Cell>{movie.rating}</Table.Cell>
+                            </Table.Row>
+                        ))}
+                    </Table.Body>
+                </Table>
+            </Grid>
+            <Grid>
+                <Text h2>Movies</Text>
                 <Input placeholder="Search movies" onChange={onChange(setQuery)}/>
             </Grid>
-            <Spacer/>
             <Grid>
                 <Table>
                     <Table.Header>

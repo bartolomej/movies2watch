@@ -1,24 +1,55 @@
+import os
+import re
+import sched
+import threading
+import time
+from datetime import datetime
+
+from cerberus import Validator
 from flask import request, jsonify, Flask
 from flask_cors import CORS
+
 from db import DB
-from seed import seed_all
-from repository import find_all, mutation, query
 from recommender import Recommender
-from cerberus import Validator
-from datetime import datetime
+from repository import find_all, mutation, query
+from seed import seed_all
 from utils import norm_text
-import re
-import os
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 r = Recommender()
 
+s = sched.scheduler(time.time, time.sleep)
+repeat_interval = 60 * 10  # update every 10min
+model_needs_update = False
+
+
+def update_model(sc=None):
+    if not model_needs_update:
+        print("Model doesn't need update")
+    else:
+        print("Updating model")
+        # rebuild & train the entire model
+        # TODO: optimise by partial update
+        r.load()
+        r.build()
+        r.train()
+    sc.enter(repeat_interval, 1, update_model, (sc,))
+
+
+def model_update_handler():
+    s.enter(repeat_interval, 1, update_model, (s,))
+    s.run()
+
+
+threading.Thread(target=model_update_handler, args=()).start()
+
 with app.app_context():
     DB.connect()
     DB.init()
-    # r.load()
-    # r.train()
+    r.load()
+    r.build()
+    r.train()
 
 
 def get_arg(key):
@@ -50,13 +81,6 @@ def serialize_rating(rating):
         'timestamp': rating[2],
         'user_id': rating[3],
         'movie_id': rating[4]
-    }
-
-
-@app.route('/predict')
-def recommender():
-    return {
-        'rating': r.predict_rating(int(get_arg("user_id")), int(get_arg("movie_id")))
     }
 
 
@@ -148,6 +172,28 @@ def user_movies(id):
     return jsonify(list(map(lambda x: serialize_movie(x), res)))
 
 
+@app.route('/user/<id>/recommended')
+def user_recommendations(id):
+    results = r.top_recommendations(int(id), count=10)
+    movie_ids = list(map(lambda x: str(x[0]), results))
+    movie_results = query(f"""
+        select id, title, genres from movie where id in ({','.join(movie_ids)})
+    """)
+    return jsonify(list(map(lambda x: {
+        'rating': float(x[0][1]),
+        'id': int(x[1][0]),
+        'title': x[1][1],
+        'genres': x[1][2].split('|'),
+    }, zip(results, movie_results))))
+
+
+@app.route('/predict')
+def recommender():
+    return {
+        'rating': r.predict_rating(int(get_arg("user_id")), int(get_arg("movie_id")))
+    }
+
+
 @app.route('/rating')
 def ratings():
     return jsonify(list(map(lambda x: serialize_rating(x), find_all("rating"))))
@@ -155,6 +201,7 @@ def ratings():
 
 @app.route('/rating', methods=['POST'])
 def add_rating():
+    global model_needs_update
     body = request.json
     validate_rating(body)
     next_id = get_next_id("rating")
@@ -162,6 +209,7 @@ def add_rating():
         insert into rating (id, rating, timestamp, userId, movieId)
         values ({next_id}, {body['rating']}, '{datetime.now().isoformat()}', {body['user_id']}, {body['movie_id']})
     """)
+    model_needs_update = True
     return {
         'id': next_id,
         'message': "Rating added"

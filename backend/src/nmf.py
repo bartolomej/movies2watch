@@ -28,6 +28,8 @@ class NMF:
         self.W = None
         self.rank = rank
         self.max_iter = max_iter
+        self.curr_iter = 0
+        self.execute = True
         self.eta = eta
 
     def fit(self, X, verbose=False):
@@ -61,6 +63,10 @@ class NMF:
         self.error = np.zeros((self.max_iter,))
 
         for t in range(self.max_iter):
+            if not self.execute:
+                self.execute = True
+                return
+
             np.random.shuffle(w_vars)
             np.random.shuffle(h_vars)
 
@@ -73,6 +79,7 @@ class NMF:
                 H[j, k] = max(0, H[j, k] + self.eta * hgrad)
 
             self.error[t] = np.linalg.norm((X - W.dot(H.T))[X > 0]) ** 2
+            self.curr_iter = t
             if verbose:
                 print(t, self.error[t])
 
@@ -93,3 +100,6 @@ class NMF:
         columns and rows.
         """
         return self.W.dot(self.H.T)
+
+    def stop(self):
+        self.execute = False

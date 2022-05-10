@@ -52,3 +52,25 @@ export function useRating() {
         submitting
     }
 }
+
+export function useRecommendations() {
+    const {user} = useAuth();
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (!user) return;
+        refetch();
+    }, [user])
+
+    function refetch() {
+        setLoading(true);
+        return fetch(`http://localhost:3001/user/${user.id}/recommended`)
+            .then(res => res.json())
+            .then(data => setData(data))
+            .catch(error => alert(error.toString()))
+            .finally(() => setLoading(false))
+    }
+
+    return {loading, data, refetch}
+}
