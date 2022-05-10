@@ -17,3 +17,14 @@ def query(sql):
         except Exception as e:
             conn.rollback()
             raise e
+
+
+def mutation(sql):
+    conn = DB.get_connection()
+    with conn.cursor() as cur:
+        try:
+            cur.execute(sql)
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            raise e
