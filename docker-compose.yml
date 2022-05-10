@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   api:
-    image: movies2watch-api
+    image: api:prod
     container_name: api
     depends_on:
       - db
@@ -18,6 +18,19 @@ services:
       - ${PORT}:${PORT}
     expose:
       - ${PORT}
+  web:
+    image: web:prod
+    depends_on:
+      - api
+    build:
+      context: frontend
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_HOST=http://localhost:3000
+    ports:
+      - ${WEB_PORT}:3000
+    expose:
+      - ${WEB_PORT}
   db:
     image: postgres:14
     restart: always

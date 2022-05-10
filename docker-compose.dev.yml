@@ -9,18 +9,33 @@ services:
       context: backend
     environment:
       - FLASK_ENV=development
-      - PORT=${PORT}
+      - PORT=${API_PORT}
       - POSTGRES_HOST=db
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_DB=${DB_DATABASE}
     ports:
-      - ${PORT}:${PORT}
+      - ${API_PORT}:${API_PORT}
     expose:
-      - ${PORT}
+      - ${API_PORT}
     restart: always
     volumes:
       - ./backend/:/app
+  web:
+    image: web:dev
+    depends_on:
+      - api
+    build:
+      context: frontend
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_HOST=http://localhost:3000
+    ports:
+      - ${WEB_PORT}:3000
+    expose:
+      - ${WEB_PORT}
+    volumes:
+      - ./frontend/:/app
   db:
     image: postgres:14
     restart: always
