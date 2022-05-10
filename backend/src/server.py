@@ -132,6 +132,14 @@ def drop():
     return "dropped"
 
 
+@app.errorhandler(Exception)
+def handle_bad_request(e):
+    return {
+        'message': str(e),
+        'code': 500
+    }
+
+
 if __name__ == "__main__":
     app.run(host=os.getenv("HOST", "0.0.0.0"),
             port=os.getenv("PORT", 8080),
