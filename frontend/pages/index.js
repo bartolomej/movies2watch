@@ -3,36 +3,46 @@ import {useAuth} from "../common/auth-context";
 import {useEffect, useState} from "react";
 import {useMovies} from "../common/use-data";
 import {onChange} from "../common/utils";
+import { Input, Spacer, Grid, Table, Loading } from "@nextui-org/react";
 
 export default function Home() {
     const router = useRouter();
     const {user} = useAuth();
     const [query, setQuery] = useState('');
-    const [movies, loading] = useMovies(query);
+    const {data, loading} = useMovies(query);
 
     useEffect(() => {
         if (!user) {
-            return router.replace("/login")
+            router.replace("/login")
         }
     }, [user])
 
     if (!user) return null;
 
     return (
-        <div>
-            Hello user {user?.id}
-            <input placeholder="Search movies" onChange={onChange(setQuery)} />
-            <table>
-                <tbody>
-                {movies.map(movie => (
-                    <tr key={movie.id}>
-                        <td>{movie.id}</td>
-                        <td>{movie.title}</td>
-                        <td>{movie.genres.join(", ")}</td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
-        </div>
+        <Grid.Container gap={2} direction="column">
+            <Grid>
+                <Input placeholder="Search movies" onChange={onChange(setQuery)} />
+            </Grid>
+            <Spacer />
+            <Grid>
+                <Table>
+                    <Table.Header>
+                        <Table.Column>ID</Table.Column>
+                        <Table.Column>TITLE</Table.Column>
+                        <Table.Column>GENRES</Table.Column>
+                    </Table.Header>
+                    <Table.Body>
+                        {data.map(movie => (
+                            <Table.Row key={movie.id}>
+                                <Table.Cell>{movie.id}</Table.Cell>
+                                <Table.Cell>{movie.title}</Table.Cell>
+                                <Table.Cell>{movie.genres.join(", ")}</Table.Cell>
+                            </Table.Row>
+                        ))}
+                    </Table.Body>
+                </Table>
+            </Grid>
+        </Grid.Container>
     )
 }

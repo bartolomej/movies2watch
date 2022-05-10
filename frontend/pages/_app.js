@@ -1,5 +1,6 @@
 import { createGlobalStyle, ThemeProvider } from 'styled-components'
 import {AuthProvider} from "../common/auth-context";
+import { NextUIProvider } from '@nextui-org/react';
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -21,7 +22,9 @@ export default function App({ Component, pageProps }) {
         <GlobalStyle />
         <ThemeProvider theme={theme}>
           <AuthProvider>
-              <Component {...pageProps} />
+              <NextUIProvider>
+                  <Component {...pageProps} />
+              </NextUIProvider>
           </AuthProvider>
         </ThemeProvider>
       </>

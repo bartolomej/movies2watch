@@ -14,5 +14,5 @@ export function useMovies(query = null) {
             .finally(() => setLoading(false))
     }, [query])
 
-    return [data, loading];
+    return {data, loading};
 }
