@@ -7,18 +7,10 @@ from utils import norm_text
 
 
 def seed_all():
-    try:
-        seed_movies()
-    except Exception as e:
-        raise e
-    try:
-        seed_users()
-    except Exception as e:
-        raise e
-    try:
-        seed_ratings()
-    except Exception as e:
-        raise e
+    seed_movies()
+    seed_users()
+    seed_ratings()
+    seed_links()
 
 
 def seed_movies():
@@ -27,10 +19,10 @@ def seed_movies():
         for row in read_seed("movies.csv"):
             if len(row) != 3:
                 continue
-            id, title, genres = row
+            movie_id, title, genres = row
             try:
                 cur.execute(
-                    f"INSERT INTO movie (id, title, genres) VALUES ({id}, '{norm_text(title)}', '{norm_text(genres)}')")
+                    f"INSERT INTO movie (id, title, genres) VALUES ({movie_id}, '{norm_text(title)}', '{norm_text(genres)}')")
             except Exception as e:
                 conn.rollback()
                 raise e
@@ -44,13 +36,13 @@ def seed_users():
         for index, row in enumerate(read_seed("ratings.csv")):
             if len(row) != 4:
                 continue
-            userId, movieId, rating, timestamp = row
-            if userId in existing:
+            user_id, movie_id, rating, timestamp = row
+            if user_id in existing:
                 continue
             try:
-                cur.execute(f"INSERT INTO \"user\" (id) VALUES ({userId})")
+                cur.execute(f"INSERT INTO \"user\" (id) VALUES ({user_id})")
                 conn.commit()
-                existing.add(userId)
+                existing.add(user_id)
             except UniqueViolation as e:
                 conn.rollback()
 
@@ -61,11 +53,11 @@ def seed_ratings():
         for index, row in enumerate(read_seed("ratings.csv")):
             if len(row) != 4:
                 continue
-            userId, movieId, rating, timestamp = row
+            user_id, movie_id, rating, timestamp = row
             iso_date = datetime.fromtimestamp(int(timestamp)).isoformat()
             try:
                 cur.execute(
-                    f"INSERT INTO rating (id, rating, timestamp, movieId, userId) VALUES ({index}, {rating}, '{iso_date}', {userId}, {userId})")
+                    f"INSERT INTO rating (id, rating, timestamp, movieId, userId) VALUES ({index}, {rating}, '{iso_date}', {user_id}, {user_id})")
                 conn.commit()
             except ForeignKeyViolation as e:
                 conn.rollback()
@@ -73,6 +65,25 @@ def seed_ratings():
             except Exception as e:
                 conn.rollback()
                 raise e
+
+
+def seed_links():
+    conn = DB.get_connection()
+    with conn.cursor() as cur:
+        for index, row in enumerate(read_seed("links.csv")):
+            if len(row) != 3:
+                continue
+            movie_id, imdb_id, tmdb_id = row
+            try:
+                imdb_expr = f"imdbid = {imdb_id}" if imdb_id else None
+                tmdb_expr = f"tmdbid = {tmdb_id} " if tmdb_id else None
+                set_expr = ','.join(list(filter(lambda x: False if x is None else True, [imdb_expr, tmdb_expr])))
+                cur.execute(
+                    f"UPDATE movie SET {set_expr} WHERE id = {movie_id}")
+            except Exception as e:
+                conn.rollback()
+                raise e
+            conn.commit()
 
 
 def read_seed(file, row_cb=lambda x: x):

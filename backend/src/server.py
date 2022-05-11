@@ -12,8 +12,12 @@ from flask_cors import CORS
 from db import DB
 from recommender import Recommender
 from repository import find_all, mutation, query
-from seed import seed_all
+from seed import seed_all, seed_links
 from utils import norm_text
+
+from concurrent.futures import as_completed
+from pprint import pprint
+from requests_futures.sessions import FuturesSession
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
@@ -163,28 +167,64 @@ def user_movies(id):
         q = norm_text(" & ".join(re.split('[ ]+', request.args['q'])))
         where_expr = f"where to_tsvector(title) @@ to_tsquery('{q}')"
 
-    res = query(f"""
-    select m.id, m.title, m.genres, r.rating from movie as m 
+    movies = query(f"""
+    select m.id, m.title, m.genres, r.rating, m.tmdbId from movie as m 
     left join rating as r on m.id = r.movieid and r.userid = {id} 
     {where_expr}
     order by m.id limit 100;
     """)
-    return jsonify(list(map(lambda x: serialize_movie(x), res)))
+
+    session = FuturesSession()
+    futures = []
+    for movie in movies:
+        future = session.get(f"https://api.themoviedb.org/3/movie/{movie[4]}?api_key=4b6b4a0d6cee34387b37b7d55f40f471")
+        futures.append(future)
+
+    response = []
+    for future, movie in zip(as_completed(futures), movies):
+        resp = future.result()
+        data = resp.json()
+        response.append({
+            'id': movie[0],
+            'title': movie[1],
+            'genres': movie[2].split('|'),
+            'rating': movie[3],
+            'overview': data['overview'],
+            'poster_url': f"https://image.tmdb.org/t/p/w500{data['poster_path']}",
+            'backdrop_url': f"https://image.tmdb.org/t/p/w500{data['backdrop_path']}",
+        })
+
+    return jsonify(response)
 
 
 @app.route('/user/<id>/recommended')
 def user_recommendations(id):
-    results = r.top_recommendations(int(id), count=10)
-    movie_ids = list(map(lambda x: str(x[0]), results))
-    movie_results = query(f"""
-        select id, title, genres from movie where id in ({','.join(movie_ids)})
+    recommended = r.top_recommendations(int(id), count=10)
+    movie_ids = list(map(lambda x: str(x[0]), recommended))
+    movies = query(f"""
+        select id, title, genres, tmdbid from movie where id in ({','.join(movie_ids)})
     """)
-    return jsonify(list(map(lambda x: {
-        'rating': float(x[0][1]),
-        'id': int(x[1][0]),
-        'title': x[1][1],
-        'genres': x[1][2].split('|'),
-    }, zip(results, movie_results))))
+
+    session = FuturesSession()
+    futures = []
+    for movie in movies:
+        future = session.get(f"https://api.themoviedb.org/3/movie/{movie[3]}?api_key=4b6b4a0d6cee34387b37b7d55f40f471")
+        futures.append(future)
+
+    response = []
+    for recommended, movie, future in zip(recommended, movies, as_completed(futures)):
+        resp = future.result()
+        data = resp.json()
+        response.append({
+            'id': movie[0],
+            'title': movie[1],
+            'genres': movie[2].split('|'),
+            'predicted_rating': recommended[1],
+            'overview': data['overview'],
+            'poster_url': f"https://image.tmdb.org/t/p/w500{data['poster_path']}",
+            'backdrop_url': f"https://image.tmdb.org/t/p/w500{data['backdrop_path']}",
+        })
+    return jsonify(response)
 
 
 @app.route('/predict')
@@ -223,7 +263,7 @@ def get_next_id(table):
 
 @app.route('/seed')
 def seed():
-    seed_all()
+    seed_links()
     return "seed"
 
 

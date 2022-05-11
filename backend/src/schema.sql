@@ -9,13 +9,15 @@ CREATE TABLE IF NOT EXISTS movie
 (
     id     SERIAL PRIMARY KEY,
     title  TEXT NOT NULL,
-    genres TEXT NOT NULL
+    genres TEXT NOT NULL,
+    tmdbId INT,
+    imdbId INT
 );
 
 CREATE TABLE IF NOT EXISTS rating
 (
-    rating    REAL NOT NULL,
-    timestamp TIMESTAMP   NOT NULL,
+    rating    REAL      NOT NULL,
+    timestamp TIMESTAMP NOT NULL,
     movieId   INT,
     userId    INT,
     CONSTRAINT fkMovie
