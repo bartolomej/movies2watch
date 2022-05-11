@@ -1,6 +1,7 @@
-import { createGlobalStyle, ThemeProvider } from 'styled-components'
+import {createGlobalStyle, ThemeProvider} from 'styled-components'
 import {AuthProvider} from "../common/auth-context";
-import { NextUIProvider } from '@nextui-org/react';
+import {NextUIProvider} from '@nextui-org/react';
+import AppLayout from "../components/Layout";
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -11,9 +12,9 @@ const GlobalStyle = createGlobalStyle`
 `
 
 const theme = {
-  colors: {
-    primary: '#0070f3',
-  },
+    colors: {
+        primary: '#0070f3',
+    },
 }
 
 export default function App({ Component, pageProps }) {

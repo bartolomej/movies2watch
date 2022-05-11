@@ -6,17 +6,17 @@ const MovieCard = ({title, posterUrl, overview, predictedRating}) => {
 
     return (
         <Card cover css={{w: "100%"}}>
-            <Card.Header css={{position: "absolute", zIndex: 1, top: 5}}>
+            <Card.Header css={{position: "absolute", zIndex: 1, top: 5, display: 'flex', alignItems: 'start'}}>
                 <Col>
                     <Text size={12} weight="bold" transform="uppercase" color="#ffffffAA">
                         {title.match(dateRegex)[0] || ''}
                     </Text>
-                    <Text h3 color="white" css={{textShadow: "0 0 4px var(--nextui-colors-secondaryLightContrast)"}}>
+                    <Text h3 color="white" css={{textShadow: "0 0 4px black"}}>
                         {title.replace(dateRegex, "")}
                     </Text>
                 </Col>
                 <Col css={{display: 'flex', justifyContent: 'flex-end'}}>
-                    <Tooltip content="Predicted rating">
+                    <Tooltip content={`Predicted rating ${Math.round(predictedRating * 10) / 10}`}>
                         <Text size={20} weight="bold" transform="uppercase" color="#ffffffAA">
                             {Math.round(predictedRating)} <FaStar/>
                         </Text>

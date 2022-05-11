@@ -16,7 +16,6 @@ from seed import seed_all, seed_links
 from utils import norm_text
 
 from concurrent.futures import as_completed
-from pprint import pprint
 from requests_futures.sessions import FuturesSession
 
 app = Flask(__name__)
@@ -24,11 +23,12 @@ cors = CORS(app, resources={r"/*": {"origins": "*"}})
 r = Recommender()
 
 s = sched.scheduler(time.time, time.sleep)
-repeat_interval = 60 * 10  # update every 10min
+repeat_interval = 10  # update every 10 seconds
 model_needs_update = False
 
 
 def update_model(sc=None):
+    print("update_model start")
     if not model_needs_update:
         print("Model doesn't need update")
     else:
@@ -38,6 +38,7 @@ def update_model(sc=None):
         r.load()
         r.build()
         r.train()
+    print("update_model end")
     sc.enter(repeat_interval, 1, update_model, (sc,))
 
 
@@ -181,7 +182,7 @@ def user_movies(id):
         futures.append(future)
 
     response = []
-    for future, movie in zip(as_completed(futures), movies):
+    for future, movie in zip(futures, movies):
         resp = future.result()
         data = resp.json()
         response.append({
@@ -212,7 +213,7 @@ def user_recommendations(id):
         futures.append(future)
 
     response = []
-    for recommended, movie, future in zip(recommended, movies, as_completed(futures)):
+    for recommended, movie, future in zip(recommended, movies, futures):
         resp = future.result()
         data = resp.json()
         response.append({
