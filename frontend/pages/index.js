@@ -2,16 +2,27 @@ import {useRouter} from "next/router";
 import {useAuth} from "../common/auth-context";
 import {useEffect, useState} from "react";
 import {useRating, useRecommendations} from "../common/use-data";
-import {Grid, Button, Text, Tooltip} from "@nextui-org/react";
+import {Grid, Button, Text, Tooltip, Loader, Loading} from "@nextui-org/react";
 import MovieCard from "../components/MovieCard";
 import AppLayout from "../components/Layout";
 import IconButton from "../components/IconButton";
 import {GrRefresh} from "react-icons/gr";
 
+function getMessage(error) {
+    switch (error.message) {
+        case "User not present in model": {
+            return "You must at least 10 movies, before our recommendations are ready."
+        }
+        default: {
+            return error.message
+        }
+    }
+}
+
 export default function Home() {
     const router = useRouter();
     const {user} = useAuth();
-    const {data: recommended, refetch: fetchRecommended} = useRecommendations();
+    const {data, invalidate, loading, error} = useRecommendations();
 
     useEffect(() => {
         if (!user) {
@@ -31,7 +42,7 @@ export default function Home() {
                         </Grid>
                         <Grid css={{display: 'flex', justifyContent: 'center'}}>
                             <Tooltip content="Refresh recommendations">
-                                <IconButton onClick={fetchRecommended}>
+                                <IconButton onClick={invalidate}>
                                     <GrRefresh />
                                 </IconButton>
                             </Tooltip>
@@ -40,7 +51,17 @@ export default function Home() {
                 </Grid>
                 <Grid>
                     <Grid.Container gap={2}>
-                        {recommended.map(movie => (
+                        {error && (
+                            <Grid>
+                                <Text>{getMessage(error)}</Text>
+                            </Grid>
+                        )}
+                        {loading && !error && (
+                            <Grid>
+                                <Loading color="currentColor" size="sm" />
+                            </Grid>
+                        )}
+                        {data && data.map(movie => (
                             <Grid xs={4}>
                                 <MovieCard
                                     id={movie.id}

@@ -1,36 +1,27 @@
 import {useEffect, useState} from "react";
 import {useAuth} from "./auth-context";
+import useSWR, {useSWRConfig} from 'swr'
+import fetcher from "./fetcher";
 
 export function useMovies(query = null) {
     const {user} = useAuth();
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const {mutate} = useSWRConfig()
+    const args = query ? `?q=${query}` : '';
+    const key = `/user/${user?.id}/movie${args}`;
+    const {data, error} = useSWR(key);
 
-    useEffect(() => {
-        if (!user) return;
-        refetch();
-    }, [query, user])
-
-    function refetch() {
-        const args = query ? `?q=${query}` : '';
-        setLoading(true);
-        return fetch(`http://localhost:3001/user/${user.id}/movie` + args)
-            .then(res => res.json())
-            .then(data => setData(data))
-            .catch(error => alert(error.toString()))
-            .finally(() => setLoading(false))
-    }
-
-    return {data, loading, refetch};
+    return {data: data, loading: !data, error, invalidate: () => mutate(key)};
 }
 
 export function useRating() {
     const {user} = useAuth();
+    const {mutate} = useSWRConfig()
+    const key = `/user/${user?.id}/movie`;
     const [submitting, setSubmitting] = useState(false);
 
     function rateMovie(movieId, rating) {
         setSubmitting(true);
-        return fetch("http://localhost:3001/rating",  {
+        return fetcher("/rating", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -41,8 +32,7 @@ export function useRating() {
                 rating
             })
         })
-            .then(res => res.json())
-            .then(data => console.log(data))
+            .then(data => mutate(key))
             .catch(error => alert(error.toString()))
             .finally(() => setSubmitting(false))
     }
@@ -55,22 +45,11 @@ export function useRating() {
 
 export function useRecommendations() {
     const {user} = useAuth();
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const {mutate} = useSWRConfig();
+    const key = `/user/${user?.id}/recommended`;
+    const {data, error} = useSWR(key, null, {
+        refreshInterval: 0
+    });
 
-    useEffect(() => {
-        if (!user) return;
-        refetch();
-    }, [user])
-
-    function refetch() {
-        setLoading(true);
-        return fetch(`http://localhost:3001/user/${user.id}/recommended`)
-            .then(res => res.json())
-            .then(data => setData(data))
-            .catch(error => alert(error.toString()))
-            .finally(() => setLoading(false))
-    }
-
-    return {loading, data, refetch}
+    return {loading: !data, error, data: data, invalidate: () => mutate(key)}
 }

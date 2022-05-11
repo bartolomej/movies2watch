@@ -2,10 +2,11 @@ import {useState} from "react";
 import {onChange} from "../common/utils";
 import {Grid, Card, Text, Input, Spacer, Button, Loading} from "@nextui-org/react";
 import useLogin from "../common/use-login";
+import useRegistration from "../common/use-registration";
 import Link from "next/link";
 
 export default function Login() {
-    const {loading, submit} = useLogin();
+    const {loading, submit} = useRegistration();
     const [username, setUsername] = useState();
     const [password, setPassword] = useState();
 
@@ -20,7 +21,7 @@ export default function Login() {
                 <Card>
                     <Grid>
                         <Text h3 css={{textAlign: 'center'}} color="gradient">
-                            Login
+                            Register
                         </Text>
                     </Grid>
                     <Spacer y={1.6}/>
@@ -52,13 +53,13 @@ export default function Login() {
                             style={{width: '100%'}}
                             onClick={onSubmit}
                         >
-                            {loading ? <Loading color="currentColor" size="sm" /> : 'Login'}
+                            {loading ? <Loading color="currentColor" size="sm" /> : 'Register'}
                         </Button>
                     </Grid>
                     <Grid>
-                        <Text style={{textAlign: 'center'}}>
-                            <Link href="/register">
-                                Register
+                        <Text  style={{textAlign: 'center'}}>
+                            <Link href="/login">
+                                Login
                             </Link>
                         </Text>
                     </Grid>

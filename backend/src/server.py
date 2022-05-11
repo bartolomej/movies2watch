@@ -216,6 +216,7 @@ def user_recommendations(id):
     for recommended, movie, future in zip(recommended, movies, futures):
         resp = future.result()
         data = resp.json()
+        print(recommended, movie, future)
         response.append({
             'id': movie[0],
             'title': movie[1],

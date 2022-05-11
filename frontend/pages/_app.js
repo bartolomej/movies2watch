@@ -1,7 +1,8 @@
 import {createGlobalStyle, ThemeProvider} from 'styled-components'
 import {AuthProvider} from "../common/auth-context";
 import {NextUIProvider} from '@nextui-org/react';
-import AppLayout from "../components/Layout";
+import {SWRConfig} from 'swr'
+import fetcher from "../common/fetcher";
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -17,17 +18,22 @@ const theme = {
     },
 }
 
-export default function App({ Component, pageProps }) {
-  return (
-      <>
-        <GlobalStyle />
-        <ThemeProvider theme={theme}>
-          <AuthProvider>
-              <NextUIProvider>
-                  <Component {...pageProps} />
-              </NextUIProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </>
-  )
+export default function App({Component, pageProps}) {
+    return (
+        <>
+            <GlobalStyle/>
+            <ThemeProvider theme={theme}>
+                <AuthProvider>
+                    <NextUIProvider>
+                        <SWRConfig value={{
+                            refreshInterval: 3000,
+                            fetcher
+                        }}>
+                            <Component {...pageProps} />
+                        </SWRConfig>
+                    </NextUIProvider>
+                </AuthProvider>
+            </ThemeProvider>
+        </>
+    )
 }
