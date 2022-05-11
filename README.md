@@ -2,4 +2,20 @@
 
 A simple movie recommendation system.
 
-DATA SOURCE: https://www.kaggle.com/datasets/rounakbanik/the-movies-dataset
+Data is downloaded from [the-movies-dataset](https://www.kaggle.com/datasets/rounakbanik/the-movies-dataset) dataset on Kaggle.
+
+## Setup
+
+### 1. Install dependencies
+
+You need to have Docker and docker-compose installed on your system.
+
+### 2. Run the app
+
+```shell
+docker-compose -f docker-compose.dev.yml up
+```
+
+### 3. Open in browser
+
+Open http://localhost:3000 to view the app.
