@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import {Col, Container, Row, Tooltip, useTheme} from "@nextui-org/react";
-import Link from "./link";
+import Link from "./Link";
 import {useAuth} from "../common/auth-context";
 import IconButton from "./IconButton";
 import {FiLogOut} from "react-icons/fi"

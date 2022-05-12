@@ -13,7 +13,7 @@ You need to have Docker and docker-compose installed on your system.
 ### 2. Run the app
 
 ```shell
-docker-compose -f docker-compose.dev.yml up
+docker-compose up
 ```
 
 ### 3. Open in browser
