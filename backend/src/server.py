@@ -59,7 +59,10 @@ signal.signal(signal.SIGTERM, shutdown)
 with app.app_context():
     DB.connect()
     DB.init()
-    seed_all()
+    try:
+        seed_all()
+    except Exception as e:
+        print(e)
     r.load()
     r.build()
     r.train()
@@ -254,14 +257,12 @@ def add_rating():
     global model_needs_update
     body = request.json
     validate_rating(body)
-    next_id = get_next_id("rating")
     mutation(f"""
-        insert into rating (id, rating, timestamp, userId, movieId)
-        values ({next_id}, {body['rating']}, '{datetime.now().isoformat()}', {body['user_id']}, {body['movie_id']})
+        insert into rating (rating, timestamp, userId, movieId)
+        values ({body['rating']}, '{datetime.now().isoformat()}', {body['user_id']}, {body['movie_id']})
     """)
     model_needs_update = True
     return {
-        'id': next_id,
         'message': "Rating added"
     }
 

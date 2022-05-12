@@ -1,5 +1,5 @@
 from db import DB
-from psycopg2.errors import UniqueViolation, ForeignKeyViolation
+from psycopg2.errors import UniqueViolation, ForeignKeyViolation, IntegrityConstraintViolation
 import csv
 from datetime import datetime
 from flask import current_app
@@ -7,21 +7,14 @@ from utils import norm_text
 
 
 def seed_all():
-    try:
-        seed_movies()
-    except Exception as e:
-        print(e)
-    try:
-        seed_ratings()
-    except Exception as e:
-        print(e)
-    try:
-        seed_links()
-    except Exception as e:
-        print(e)
+    seed_movies()
+    seed_users()
+    seed_ratings()
+    seed_links()
 
 
 def seed_movies():
+    print("Seeding movies")
     conn = DB.get_connection()
     with conn.cursor() as cur:
         for row in read_seed("movies.csv"):
@@ -38,6 +31,7 @@ def seed_movies():
 
 
 def seed_users():
+    print("Seeding users")
     conn = DB.get_connection()
     existing = set()
     with conn.cursor() as cur:
@@ -56,6 +50,7 @@ def seed_users():
 
 
 def seed_ratings():
+    print("Seeding ratings")
     conn = DB.get_connection()
     with conn.cursor() as cur:
         for index, row in enumerate(read_seed("ratings.csv")):
@@ -65,17 +60,15 @@ def seed_ratings():
             iso_date = datetime.fromtimestamp(int(timestamp)).isoformat()
             try:
                 cur.execute(
-                    f"INSERT INTO rating (id, rating, timestamp, movieId, userId) VALUES ({index}, {rating}, '{iso_date}', {user_id}, {user_id})")
+                    f"INSERT INTO rating (rating, timestamp, movieId, userId) VALUES ({rating}, '{iso_date}', {movie_id}, {user_id})")
                 conn.commit()
-            except ForeignKeyViolation as e:
-                conn.rollback()
-                pass  # ignore foreign key violation for now
             except Exception as e:
                 conn.rollback()
-                raise e
+                print(e)
 
 
 def seed_links():
+    print("Seeding links")
     conn = DB.get_connection()
     with conn.cursor() as cur:
         for index, row in enumerate(read_seed("links.csv")):

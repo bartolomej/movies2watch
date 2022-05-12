@@ -8,6 +8,8 @@ RUN npm i
 
 COPY . ./
 
+RUN npm run build
+
 FROM builder as development
 
 WORKDIR /app
@@ -20,8 +22,6 @@ FROM builder as production
 
 WORKDIR /app
 
-COPY --from=builder /app /app
-
-RUN npm run build
+COPY --from=builder /app/.next /app/.next
 
 CMD ["npm", "run", "start"]

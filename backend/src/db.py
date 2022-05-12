@@ -1,5 +1,7 @@
 import os
 import psycopg2
+import time
+from psycopg2 import DatabaseError
 from flask import current_app
 
 
@@ -7,9 +9,13 @@ class DB:
     conn = None
 
     @staticmethod
-    def connect(host=None, database=None, user=None, password=None):
+    def connect(host=None, database=None, user=None, password=None, retries=10):
+        if retries == 0:
+            return
+
         def get_var(value, default):
             return value if value else default
+
         try:
             DB.conn = psycopg2.connect(
                 host=get_var(host, os.getenv("POSTGRES_HOST")),
@@ -17,9 +23,11 @@ class DB:
                 user=get_var(user, os.getenv("POSTGRES_USER")),
                 password=get_var(password, os.getenv("POSTGRES_PASSWORD"))
             )
-        except (Exception, psycopg2.DatabaseError) as error:
+        except (Exception, DatabaseError) as error:
+            print("Connection error, retrying in 1s...")
             print(error)
-            return None
+            time.sleep(1)
+            DB.connect(host, database, user, password, retries - 1)
 
     @staticmethod
     def drop_all():

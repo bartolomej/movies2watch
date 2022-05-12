@@ -12,6 +12,10 @@ You need to have Docker and docker-compose installed on your system.
 
 ### 2. Run the app
 
+This command will build and start the entire application (frontend, backend, database).
+
+After the application starts, you will need to wait for a bit until the initialisation procedure (database seeding) finishes.
+
 ```shell
 docker-compose up
 ```
@@ -21,6 +25,8 @@ docker-compose up
 Open http://localhost:3000 to view the app.
 
 ## Overview
+
+This app allows users to discover new movies of interests.
 
 ### Movies
 
