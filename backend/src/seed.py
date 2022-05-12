@@ -7,10 +7,18 @@ from utils import norm_text
 
 
 def seed_all():
-    seed_movies()
-    seed_users()
-    seed_ratings()
-    seed_links()
+    try:
+        seed_movies()
+    except Exception as e:
+        print(e)
+    try:
+        seed_ratings()
+    except Exception as e:
+        print(e)
+    try:
+        seed_links()
+    except Exception as e:
+        print(e)
 
 
 def seed_movies():

@@ -3,6 +3,7 @@ import re
 import sched
 import threading
 import time
+import signal
 from datetime import datetime
 
 from cerberus import Validator
@@ -14,8 +15,6 @@ from recommender import Recommender
 from repository import find_all, mutation, query
 from seed import seed_all, seed_links
 from utils import norm_text
-
-from concurrent.futures import as_completed
 from requests_futures.sessions import FuturesSession
 
 app = Flask(__name__)
@@ -23,35 +22,44 @@ cors = CORS(app, resources={r"/*": {"origins": "*"}})
 r = Recommender()
 
 s = sched.scheduler(time.time, time.sleep)
-repeat_interval = 10  # update every 10 seconds
+s_event = None
+repeat_interval = 5  # update model every 5 seconds
 model_needs_update = False
 
 
 def update_model(sc=None):
-    print("update_model start")
-    if not model_needs_update:
-        print("Model doesn't need update")
-    else:
+    if model_needs_update:
         print("Updating model")
         # rebuild & train the entire model
         # TODO: optimise by partial update
         r.load()
         r.build()
         r.train()
-    print("update_model end")
     sc.enter(repeat_interval, 1, update_model, (sc,))
 
 
 def model_update_handler():
-    s.enter(repeat_interval, 1, update_model, (s,))
+    global s_event
+    s_event = s.enter(repeat_interval, 1, update_model, (s,))
     s.run()
 
 
 threading.Thread(target=model_update_handler, args=()).start()
 
+
+def shutdown():
+    print("Shutting down...")
+    s.cancel(s_event)
+
+
+signal.signal(signal.SIGINT, shutdown)
+signal.signal(signal.SIGTERM, shutdown)
+
+# init app
 with app.app_context():
     DB.connect()
     DB.init()
+    seed_all()
     r.load()
     r.build()
     r.train()
@@ -261,24 +269,6 @@ def add_rating():
 def get_next_id(table):
     row, = query(f"select max(id) from \"{table}\"")
     return int(row[0]) + 1
-
-
-@app.route('/seed')
-def seed():
-    seed_links()
-    return "seed"
-
-
-@app.route('/init')
-def init():
-    DB.init()
-    return "Init"
-
-
-@app.route('/drop')
-def drop():
-    DB.drop_all()
-    return "dropped"
 
 
 @app.errorhandler(Exception)

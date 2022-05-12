@@ -77,12 +77,10 @@ class Recommender:
                 t = (movie_id, user_id)
                 data[i, j] = 0 if t not in ratings_map else ratings_map.get(t)
         self.data = data
-        print(f"Data matrix shape: {self.data.shape}")
 
     def train(self):
         self.nmf = NMF(rank=10, max_iter=10)
         print("Training model...")
-        print(np.array2string(self.data))
         self.nmf.fit(self.data, verbose=True)
 
     def predict_rating(self, user_id, movie_id):
