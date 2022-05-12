@@ -85,9 +85,11 @@ export default function Home() {
                                                     <Row justify="center" align="center">
                                                         <Col css={{d: "flex"}}>
                                                             {!movie.rating && (
-                                                                <IconButton onClick={() => setCurrMovieId(movie.id)}>
-                                                                    <MdRateReview />
-                                                                </IconButton>
+                                                                <Tooltip content="Rate this movie">
+                                                                    <IconButton onClick={() => setCurrMovieId(movie.id)}>
+                                                                        <MdRateReview />
+                                                                    </IconButton>
+                                                                </Tooltip>
                                                             )}
                                                         </Col>
                                                     </Row>

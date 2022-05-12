@@ -200,7 +200,7 @@ def user_movies(id):
 
 @app.route('/user/<id>/recommended')
 def user_recommendations(id):
-    recommended = r.top_recommendations(int(id), count=10)
+    recommended = r.top_recommendations(int(id), count=12)
     movie_ids = list(map(lambda x: str(x[0]), recommended))
     movies = query(f"""
         select id, title, genres, tmdbid from movie where id in ({','.join(movie_ids)})

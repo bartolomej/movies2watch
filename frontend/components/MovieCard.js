@@ -38,29 +38,31 @@ const MovieCard = ({title, posterUrl, overview, predictedRating}) => {
                     bgBlur: "#ffffff",
                     borderTop: "$borderWeights$light solid rgba(255, 255, 255, 0.2)",
                     bottom: 0,
+                    height: 100,
+                    overflowY: 'scroll',
                     zIndex: 1,
                 }}
             >
-                <Row>
+                <Row css={{height: '100%'}}>
                     <Col>
                         <Text color="#000" size={12}>
-                            {overview?.substring(0, 80)}...
+                            {overview}
                         </Text>
                     </Col>
-                    <Col>
-                        <Row justify="flex-end">
-                            <Button flat auto rounded color="secondary">
-                                <Text
-                                    css={{color: "inherit"}}
-                                    size={12}
-                                    weight="bold"
-                                    transform="uppercase"
-                                >
-                                    READ MORE
-                                </Text>
-                            </Button>
-                        </Row>
-                    </Col>
+                    {/*<Col>*/}
+                    {/*    <Row justify="flex-end">*/}
+                    {/*        <Button flat auto rounded color="secondary">*/}
+                    {/*            <Text*/}
+                    {/*                css={{color: "inherit"}}*/}
+                    {/*                size={12}*/}
+                    {/*                weight="bold"*/}
+                    {/*                transform="uppercase"*/}
+                    {/*            >*/}
+                    {/*                READ MORE*/}
+                    {/*            </Text>*/}
+                    {/*        </Button>*/}
+                    {/*    </Row>*/}
+                    {/*</Col>*/}
                 </Row>
             </Card.Footer>
         </Card>

@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { Col, Container, Row, useTheme } from "@nextui-org/react";
+import {Col, Container, Row, Tooltip, useTheme} from "@nextui-org/react";
 import Link from "./link";
 import {useAuth} from "../common/auth-context";
 import IconButton from "./IconButton";
@@ -12,7 +12,7 @@ function Navigation() {
 
     return (
         <NavContainer>
-            <Nav style={{ background: theme?.colors?.purple200 }}>
+            <Nav>
                 <Container style={{ maxWidth: '100%', height: '100%' }}>
                     <Row style={{ height: "100%" }}>
                         <LeftCol>
@@ -20,9 +20,11 @@ function Navigation() {
                             <Link href="/movies" title="Movies" />
                         </LeftCol>
                         <RightCol>
-                            <IconButton onClick={logout}>
-                                <FiLogOut />
-                            </IconButton>
+                            <Tooltip content="Logout">
+                                <IconButton onClick={logout}>
+                                    <FiLogOut />
+                                </IconButton>
+                            </Tooltip>
                         </RightCol>
                     </Row>
                 </Container>
@@ -41,6 +43,7 @@ const NavContainer = styled.div`
 const Nav = styled.nav`
   border-radius: 10px;
   height: 60px;
+  background: var(--nextui-colors-secondaryLight);
 `;
 
 const NavCol = styled(Col)`

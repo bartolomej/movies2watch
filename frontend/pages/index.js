@@ -62,7 +62,7 @@ export default function Home() {
                             </Grid>
                         )}
                         {data && data.map(movie => (
-                            <Grid xs={4}>
+                            <Grid xs={4} key={movie.id}>
                                 <MovieCard
                                     id={movie.id}
                                     title={movie.title}
