@@ -19,3 +19,21 @@ docker-compose up
 ### 3. Open in browser
 
 Open http://localhost:3000 to view the app.
+
+## Overview
+
+### Movies
+
+App allows you to search through all the movies in the database. You can also rate any movie that you already viewed on a scale 1-5.
+
+![](./screenshots/movies.png)
+
+### Recommendations
+
+After user rated 10 or more movies, he/she will be included in the recommendation model.
+
+When recommendation predictions are available, users can view them under "Recommended" tab. The predicted ratings are shown in the top right corner of each recommended movie. 
+
+Users can also refresh the recommendations, to build new predictions.
+
+![](./screenshots/recommended.png)
